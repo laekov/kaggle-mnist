@@ -62,19 +62,19 @@ def main():
     try: 
         net.load_state_dict(torch.load(config.parameter))
     except:
-        pass
+        print('state dict loading failed')
     if config.test:
         test(net, device)
     else:
         optimizer = optim.Adam(net.parameters(), lr = config.lr)
-        best_acc = 0.
+        best_acc = validate(net, device)
         cnt_decend = 0
         for count_epoch in range(total_epoch):
             trainEpoch(net, optimizer, device)
             acc = validate(net, device)
             if acc > best_acc:
                 best_acc = acc
-                torch.save(net, 'net.pt')
+                torch.save(net.state_dict(), 'net.pt')
                 cnt_decend = 0
             else:
                 cnt_decend += 1
