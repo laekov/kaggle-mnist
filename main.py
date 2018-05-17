@@ -7,7 +7,7 @@ import argparse
 from model import Net
 from csv_reader import readCSV
 
-total_epoch = 100
+total_epoch = 16
 batch_size = 64
 cut_count = 6
 
@@ -55,7 +55,7 @@ def main():
     parser.add_argument('-test', '--test', action = 'store_true', default = False)
     parser.add_argument('--device', type = str, default = 'cpu')
     parser.add_argument('--parameter', type = str, default = 'net.pt')
-    parser.add_argument('--lr', type = float, default = 0.0002)
+    parser.add_argument('--lr', type = float, default = 0.002)
     config = parser.parse_args()
     device = torch.device(config.device)
     net = Net().to(device)
@@ -66,12 +66,16 @@ def main():
     if config.test:
         test(net, device)
     else:
-        optimizer = optim.Adam(net.parameters(), lr = config.lr)
+        # optimizer = optim.Adam(net.parameters(), lr = config.lr)
+        optimizer = optim.SGD(net.parameters(), lr = config.lr)
         best_acc = validate(net, device)
+        accs = [ best_acc ]
         cnt_decend = 0
         for count_epoch in range(total_epoch):
+            print('Training epoch %d' % count_epoch)
             trainEpoch(net, optimizer, device)
             acc = validate(net, device)
+            accs.append(acc)
             if acc > best_acc:
                 best_acc = acc
                 torch.save(net.state_dict(), 'net.pt')
@@ -80,6 +84,7 @@ def main():
                 cnt_decend += 1
                 if cnt_decend > cut_count:
                     break
+        print(accs)
     
 if __name__ == '__main__':
     main()
